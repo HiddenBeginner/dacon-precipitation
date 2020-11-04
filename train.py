@@ -18,7 +18,10 @@ def get_arguments():
     parser.add_argument('--lr', type=float, default=1e-3, help='Learning rate')
     parser.add_argument('--n_epochs', type=int, default=10, help='The number of epochs')
     parser.add_argument('--verbose', type=bool, default=True, help='Whether or not to print train/eval progression')
-    parser.add_argument('--dir_base', type=str, default='./output/checkpoints', help='The path where trained model will be saved')
+    parser.add_argument('--dir_base', type=str, default='./output/checkpoints',
+                        help='The path where trained model will be saved')
+    parser.add_argument('--dir_checkpoint', type=str, default=None,
+                        help='The path of a pretrained model')
 
     return parser.parse_args()
 
@@ -30,13 +33,13 @@ if __name__ == '__main__':
     train_dataset = PrecipitationDataset(df=df[df['dataset'] == 'train'].reset_index(drop=True),
                                          dir_sample='./input/train',
                                          mode='train',
-                                         resize=120,
+                                         imsize=120,
                                          transform=None)
 
     valid_dataset = PrecipitationDataset(df=df[df['dataset'] == 'validation'].reset_index(drop=True),
                                          dir_sample='./input/train',
                                          mode='test',
-                                         resize=120,
+                                         imsize=120,
                                          transform=None)
 
     train_loader = DataLoader(train_dataset,
@@ -50,11 +53,16 @@ if __name__ == '__main__':
                               drop_last=False)
 
     model = UNet(n_channels=4, n_classes=1)
+
     fitter = Fitter(model,
                     lr=args.lr,
                     n_epochs=args.n_epochs,
                     verbose=args.verbose,
                     dir_base=args.dir_base)
+
+    if args.dir_checkpoint is not None:
+        print("Pretrained weights are equipped")
+        fitter.load(args.dir_checkpoint)
 
     fitter.fit(train_loader, valid_loader)
 

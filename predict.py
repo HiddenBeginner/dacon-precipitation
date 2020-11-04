@@ -16,8 +16,10 @@ def get_arguments():
     parser.add_argument('--batch_size', type=int, default=1, help='Batch size')
 
     # Fitter arguments
-    parser.add_argument('--dir_checkpoint', type=str, default='./output/checkpoints/best-checkpoint-008.bin', help='The checkpoint path')
-    parser.add_argument('--dir_sub', type=str, default='./output/sub/submission.csv', help='The path where trained model will be saved')
+    parser.add_argument('--dir_checkpoint', type=str, default='./output/checkpoints/best-checkpoint-008.bin',
+                        help='The checkpoint path')
+    parser.add_argument('--dir_sub', type=str, default='./output/sub/submission.csv',
+                        help='The path where trained model will be saved')
 
     return parser.parse_args()
 
@@ -29,7 +31,7 @@ if __name__ == '__main__':
     test_dataset = PrecipitationDataset(df=df[df['dataset'] == 'test'].reset_index(drop=True),
                                         dir_sample='./input/test',
                                         mode='test',
-                                        resize=120,
+                                        imsize=120,
                                         transform=None)
 
     test_loader = DataLoader(test_dataset,

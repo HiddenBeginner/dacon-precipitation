@@ -1,3 +1,5 @@
+from pytorch_ssim import SSIM
+
 import os
 import time
 import torch
@@ -46,7 +48,8 @@ class Fitter:
                                                                     eps=1e-8)
         # Define the loss
         self.criterion = torch.nn.MSELoss()
-
+        # self.criterion = torch.nn.L1Loss()
+        self.log(f'====================================================')
         self.log(f'Fitter prepared | Time: {datetime.utcnow().isoformat()} | Device: {self.device}')
 
     def fit(self, train_loader, valid_loader):
@@ -166,7 +169,7 @@ class Fitter:
             'optimizer_state_dict': self.optimizer.state_dict(),
             'scheduler_state_dict': self.scheduler.state_dict(),
             'best_summary_loss': self.best_summary_loss,
-            'epoch': self.epoch
+            'epoch': self.epoch + 1
         }, path)
 
     def load(self, path):
@@ -175,7 +178,7 @@ class Fitter:
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         self.scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
         self.best_summary_loss = checkpoint['best_summary_loss']
-        self.epoch = self.epoch
+        self.epoch = checkpoint['epoch']
 
     def log(self, message):
         if self.verbose:
@@ -185,7 +188,7 @@ class Fitter:
 
 
 def postprocess(output):
-    '''
+    """
     Post-process a batch of output. The postprocessing follows a number of steps:
      0. Unify the data type of output with numpy.ndarray with shape (batch_size, 120, 120, 1)
      1. Clip output from 0 to 255.
@@ -195,7 +198,7 @@ def postprocess(output):
     parameters
     ----------
     output: numpy.ndarray or torch.tensor, a batch of output.
-    '''
+    """
     # Make the shape of output (batch_size, 120, 120, 1)
     if isinstance(output, torch.cuda.FloatTensor):
         output = output.detach().cpu().numpy()
