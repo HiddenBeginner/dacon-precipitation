@@ -13,9 +13,11 @@ def get_arguments():
     # Dataset arguments
     parser.add_argument('--dir_meta', type=str, default='./input/metadata(1102).csv', help='The path of metadata')
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size')
+    parser.add_argument('--p_cutmix', type=float, default=0.0, help='Probability of cutmix')
+    parser.add_argument('--p_mixup', type=float, default=0.0, help='Probability of mixup')
 
     # Fitter arguments
-    parser.add_argument('--lr', type=float, default=1e-3, help='Learning rate')
+    parser.add_argument('--lr', type=float, default=1e-1, help='Learning rate')
     parser.add_argument('--n_epochs', type=int, default=10, help='The number of epochs')
     parser.add_argument('--verbose', type=bool, default=True, help='Whether or not to print train/eval progression')
     parser.add_argument('--dir_base', type=str, default='./output/checkpoints',
@@ -34,6 +36,8 @@ if __name__ == '__main__':
                                          dir_sample='./input/train',
                                          mode='train',
                                          imsize=120,
+                                         p_cutmix=args.p_cutmix,
+                                         p_mixup=args.p_mixup,
                                          transform=None)
 
     valid_dataset = PrecipitationDataset(df=df[df['dataset'] == 'validation'].reset_index(drop=True),
@@ -61,8 +65,8 @@ if __name__ == '__main__':
                     dir_base=args.dir_base)
 
     if args.dir_checkpoint is not None:
-        print("Pretrained weights are equipped")
         fitter.load(args.dir_checkpoint)
+        print(f"Pretrained weights are equipped. Epoch : {fitter.epoch}")
 
     fitter.fit(train_loader, valid_loader)
 

@@ -5,12 +5,14 @@ from torch.utils.data import Dataset
 
 
 class PrecipitationDataset(Dataset):
-    def __init__(self, df, dir_sample, imsize, mode, transform):
+    def __init__(self, df, dir_sample, imsize, mode, transform=None, p_cutmix=0.0, p_mixup=0.0):
         self.df = df
         self.dir_sample = dir_sample
         self.imsize = imsize
         self.mode = mode
         self.transform = transform
+        self.p_cutmix = p_cutmix
+        self.p_mixup = p_mixup
 
         if self.mode not in ['train', 'test']:
             raise AttributeError('The "mode" must be one of ["train", "test"]')
@@ -21,10 +23,21 @@ class PrecipitationDataset(Dataset):
     def __getitem__(self, index):
         sample_id = self.df.loc[index, 'id']
 
-        if self.mode == 'test' or np.random.random() > 0.5:
+        if self.mode == 'test':
             X, y = self.load_sample_and_label(index)
+
         else:
-            X, y = self.load_cutmix_sample_and_label(index, imsize=self.imsize)
+            if self.p_cutmix + self.p_mixup > 1:
+                raise AttributeError("The sum of probabilities of cutmix and mixup have to be less than or equal to 1.0")
+            else:
+                sample_type = np.random.choice(a=[0, 1, 2],
+                                               p=[1 - (self.p_cutmix + self.p_mixup), self.p_cutmix, self.p_mixup])
+                if sample_type == 0:
+                    X, y = self.load_sample_and_label(index)
+                elif sample_type == 1:
+                    X, y = self.load_cutmix_sample_and_label(index, imsize=self.imsize)
+                else:
+                    X, y = self.load_mixup_sample_and_label(index)
 
         X = torch.as_tensor(X).permute(2, 0, 1)
         y = torch.as_tensor(y).permute(2, 0, 1)
@@ -46,7 +59,7 @@ class PrecipitationDataset(Dataset):
 
     def load_cutmix_sample_and_label(self, index, imsize):
         """
-        This implementation of cutmix author:  https://www.kaggle.com/nvnnghia
+        This implementation of cutmix author: https://www.kaggle.com/nvnnghia
         Refactoring and adaptation: https://www.kaggle.com/shonenkov
         """
         w, h = imsize, imsize
@@ -77,6 +90,14 @@ class PrecipitationDataset(Dataset):
 
         return result_X, result_y
 
+    def load_mixup_sample_and_label(self, index):
+        target_index = np.random.randint(0, self.__len__()-1)
+        alpha = np.clip(np.random.beta(1.0, 1.0), 0.2, 0.8)
 
+        X1, y1 = self.load_sample_and_label(index)
+        X2, y2 = self.load_sample_and_label(target_index)
 
+        X = alpha * X1 + (1 - alpha) * X2
+        y = alpha * y1 + (1 - alpha) * y2
 
+        return X, y
