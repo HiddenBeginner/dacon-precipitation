@@ -13,7 +13,7 @@ from datetime import datetime
 class Fitter:
     def __init__(self,
                  model,
-                 lr=1e-3,
+                 lr=1e-1,
                  n_epochs=10,
                  verbose=True,
                  dir_base='./output/checkpoints'):
@@ -36,23 +36,24 @@ class Fitter:
         # Define the optimizer
         self.params = [p for p in self.model.parameters() if p.requires_grad]
         self.optimizer = torch.optim.AdamW(self.params, lr=self.lr)
-        self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer=self.optimizer,
-                                                                    mode='min',
-                                                                    factor=0.5,
-                                                                    patience=1,
-                                                                    verbose=True,
-                                                                    threshold=0.001,
-                                                                    threshold_mode='abs',
-                                                                    cooldown=0,
-                                                                    min_lr=1e-8,
-                                                                    eps=1e-8)
+        # self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer=self.optimizer,
+        #                                                             mode='min',
+        #                                                             factor=0.5,
+        #                                                             patience=1,
+        #                                                             verbose=True,
+        #                                                             threshold=0.00005,
+        #                                                             threshold_mode='abs',
+        #                                                             cooldown=0,
+        #                                                             min_lr=1e-8,
+        #                                                             eps=1e-8)
+
         # Define the loss
         self.criterion = torch.nn.MSELoss()
-        # self.criterion = torch.nn.L1Loss()
         self.log(f'====================================================')
         self.log(f'Fitter prepared | Time: {datetime.utcnow().isoformat()} | Device: {self.device}')
 
     def fit(self, train_loader, valid_loader):
+        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, len(train_loader))
         for epoch in range(self.n_epochs):
             if self.verbose:
                 lr = self.optimizer.param_groups[0]['lr']
@@ -88,9 +89,10 @@ class Fitter:
                     os.remove(path)
 
             # Scheduler update
-            self.scheduler.step(metrics=summary_loss.avg)
-
+            # self.scheduler.step(metrics=summary_loss.avg)
+            self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, len(train_loader))
             self.epoch += 1
+
         # End for (overall epochs)
 
     def train_one_epoch(self, train_loader):
@@ -116,6 +118,7 @@ class Fitter:
             loss.backward()
             summary_loss.update(loss.detach().item(), batch_size)
             self.optimizer.step()
+            self.scheduler.step()
         # End for (one epoch)
         return summary_loss
 
