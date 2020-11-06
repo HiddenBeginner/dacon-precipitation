@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold
 
 
 def prepare_metadata(dir_input='./input', dir_metadata='./input/metadata.csv'):
@@ -21,17 +21,13 @@ def prepare_metadata(dir_input='./input', dir_metadata='./input/metadata.csv'):
     test = {'id': os.listdir(f'{dir_input}/test'),
             'dataset': ['test'] * len(os.listdir(f'{dir_input}/test'))}
     test = pd.DataFrame(test)
-
-    metadata = pd.concat([train, test], axis=0, ignore_index=True)
     # End ================================ #
     # Split train data =================== #
-    train_index, val_index = train_test_split(
-        range(len(os.listdir(f'{dir_input}/train'))),
-        test_size=0.2,
-        shuffle=True,
-        random_state=1
-    )
-    metadata.loc[val_index, 'dataset'] = 'validation'
+    kfold = KFold(n_splits=5, shuffle=True, random_state=1)
+    for fold_number, (train_index, val_index) in enumerate(kfold.split(range(train.shape[0]))):
+        train.loc[val_index, 'dataset'] = f'fold_{str(fold_number)}'
+
+    metadata = pd.concat([train, test], axis=0, ignore_index=True)
     # End ================================ #
     # Save metadata ###=================== #
     if dir_metadata is not None:
@@ -39,3 +35,13 @@ def prepare_metadata(dir_input='./input', dir_metadata='./input/metadata.csv'):
     # End ================================ #
 
     return metadata
+
+
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dir_input', type=str, default='./input')
+    parser.add_argument('--dir_metadata', type=str, default='./input/metadata.csv')
+    args = parser.parse_args()
+
+    prepare_metadata(args.dir_input, args.dir_metadata)
