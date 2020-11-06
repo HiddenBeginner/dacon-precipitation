@@ -39,8 +39,17 @@ class PrecipitationDataset(Dataset):
                 else:
                     X, y = self.load_mixup_sample_and_label(index)
 
-        X = torch.as_tensor(X).permute(2, 0, 1)
-        y = torch.as_tensor(y).permute(2, 0, 1)
+        if self.transform is not None:
+            transform = self.transform(**{
+                'image': X,
+            })
+
+            X = transform['image']
+            y = torch.as_tensor(y).permute(2, 0, 1)
+
+        else:
+            X = torch.as_tensor(X).permute(2, 0, 1)
+            y = torch.as_tensor(y).permute(2, 0, 1)
 
         return X, y, sample_id
 
