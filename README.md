@@ -3,6 +3,8 @@
 - **참여 일자**: 2020년 11월 01일 (D-11)
 - **대회 링크**: [공공데이터 활용 수력 댐 강우예측 AI 경진대회](https://dacon.io/competitions/official/235646/overview/)
 
+![result-examples](images/result-examples.jpg)<br/>
+
 ---
 
 ## Solution
@@ -10,8 +12,9 @@
 - 이번 대회 문제는 image 4개를 입력 받아서 image 하나를 출력하는 문제였습니다. 이런 문제는 인코더-디코더 구조의 모델로 해결 할 수 있는데, 저는 그 중 가장 널리 사용되는 UNet을 사용하였습니다.
 - 120 x 120 이미지에 UNet을 적용할 경우 10 에폭 전에 오버피팅이 발생합니다. 이미지의 각 픽셀이 고유한 위치 좌표를 의미한다는 점과 과한 Augmentation은 오히려 자연법칙을 훼손할 수 있다는 점을 고려하여 `Blur`, `Median Blur`, `CutOut`만 사용하였습니다.
 이 때 Input에만 Augmentation을 적용하여, 노이지한 이미지를 입력받아도 정상적인 출력을 할 수 있는 모델을 만들었습니다.
+![augmentations](images/augmentations.jpg)
 - MSE와 MAE는 이미지 안의 모든 픽셀들을 독립이라고 가정합니다. 이러한 가정 때문에 MSE/MAE를 사용할 경우 Blur한 이미지가 생성되게 됩니다. MSE/MAE 대신 두 이미지 사이의 휘도, 명암, 구조를 비교하는  `SSIM` 이라는 손실함수를 사용했습니다.  
- 
+
 ### Level 1 Model
 Model1
 - UNet from [@milesial](https://github.com/milesial/Pytorch-UNet/blob/master/unet/unet_model.py#L8) 
