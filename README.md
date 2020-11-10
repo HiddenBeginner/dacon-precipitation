@@ -2,6 +2,8 @@
 - **대회 기간**: 2020년 10월 05일 ~ 2020년 11월 13일 18시
 - **참여 일자**: 2020년 11월 01일 (D-11)
 - **대회 링크**: [공공데이터 활용 수력 댐 강우예측 AI 경진대회](https://dacon.io/competitions/official/235646/overview/)
+- **대회 결과**: 
+- **결과 예시 사진:**
 
 ![result-examples](images/result-examples.jpg)<br/>
 
@@ -13,7 +15,8 @@
 - 120 x 120 이미지에 UNet을 적용할 경우 10 에폭 전에 오버피팅이 발생합니다. 이미지의 각 픽셀이 고유한 위치 좌표를 의미한다는 점과 과한 Augmentation은 오히려 자연법칙을 훼손할 수 있다는 점을 고려하여 `Blur`, `Median Blur`, `CutOut`만 사용하였습니다.
 이 때 Input에만 Augmentation을 적용하여, 노이지한 이미지를 입력받아도 정상적인 출력을 할 수 있는 모델을 만들었습니다.
 ![augmentations](images/augmentations.jpg)
-- MSE와 MAE는 이미지 안의 모든 픽셀들을 독립이라고 가정합니다. 이러한 가정 때문에 MSE/MAE를 사용할 경우 Blur한 이미지가 생성되게 됩니다. MSE/MAE 대신 두 이미지 사이의 휘도, 명암, 구조를 비교하는  `SSIM` 이라는 손실함수를 사용했습니다.  
+- MSE와 MAE는 이미지 안의 모든 픽셀들을 독립이라고 가정합니다. 이러한 가정 때문에 MSE/MAE를 사용할 경우 Blur한 이미지가 생성되게 됩니다. MSE/MAE 대신 두 이미지 사이의 휘도, 명암, 구조를 비교하는  `SSIM` 이라는 손실함수를 사용했습니다. 아래는 두 손실함수를 사용한 모델이 충분히 학습을 마친 후 예측한 결과입니다.
+![comparsion](images/comparision.jpg)  
 
 ### Level 1 Model
 Model1
