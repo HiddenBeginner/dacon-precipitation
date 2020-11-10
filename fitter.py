@@ -187,7 +187,7 @@ class Fitter:
             logger.write(f'{message}\n')
 
 
-def postprocess(output, threshold=40):
+def postprocess(output):
     """
     Post-process a batch of output. The postprocessing follows a number of steps:
      0. Unify the data type of output with numpy.ndarray with shape (batch_size, 120, 120, 1)
@@ -215,7 +215,6 @@ def postprocess(output, threshold=40):
     # Clip and rescale output from 0 to 255
     output = np.clip(output, 0, 1)
     output = output * 255
-    output[output<threshold] = 0
 
     return output.astype(np.uint8)
 
