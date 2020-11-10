@@ -48,7 +48,7 @@ class Fitter:
                                                                     eps=1e-8)
 
         # Define the loss
-        self.criterion = torch.nn.MSELoss()
+        self.criterion = SSIM()
         self.log(f'====================================================')
         self.log(f'Fitter prepared | Time: {datetime.utcnow().isoformat()} | Device: {self.device}')
 
@@ -112,7 +112,7 @@ class Fitter:
 
             self.optimizer.zero_grad()
             output = self.model(X)
-            loss = self.criterion(output, y)
+            loss = -1 * self.criterion(output, y)
             loss.backward()
             summary_loss.update(loss.detach().item(), batch_size)
             self.optimizer.step()
@@ -137,7 +137,7 @@ class Fitter:
                 y = y.to(self.device)
 
                 output = self.model(X)
-                loss = self.criterion(output, y)
+                loss = -1 * self.criterion(output, y)
                 summary_loss.update(loss.detach().item(), batch_size)
         # End for (one epoch)
         return summary_loss
@@ -187,7 +187,7 @@ class Fitter:
             logger.write(f'{message}\n')
 
 
-def postprocess(output):
+def postprocess(output, threshold=40):
     """
     Post-process a batch of output. The postprocessing follows a number of steps:
      0. Unify the data type of output with numpy.ndarray with shape (batch_size, 120, 120, 1)
@@ -215,6 +215,7 @@ def postprocess(output):
     # Clip and rescale output from 0 to 255
     output = np.clip(output, 0, 1)
     output = output * 255
+    output[output<threshold] = 0
 
     return output.astype(np.uint8)
 
