@@ -24,6 +24,7 @@ class AverageEnsembler:
             self.update(sub)
 
         self.result /= self.n
+        self.result = np.round(self.result)
         self.sample_submission.iloc[:, 1:] = self.result.astype(np.uint8)
         self.sample_submission.to_csv(self.dir_result_sub, index=False)
 
