@@ -209,12 +209,13 @@ def postprocess(output):
     if output.shape[-1] != 1:
         output = output.transpose(0, 2, 3, 1)
 
-    # Vanish pixels whose values are less than 1/255
-    output[np.where(output < 1 / 255.)] = 0
+    # Vanish pixels whose values are less than 1/510
+    output[np.where(output < 1 / 510.)] = 0
 
     # Clip and rescale output from 0 to 255
     output = np.clip(output, 0, 1)
     output = output * 255
+    output = np.round(output)
 
     return output.astype(np.uint8)
 
