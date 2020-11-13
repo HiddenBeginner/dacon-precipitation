@@ -1,8 +1,8 @@
-# 공공데이터 활용 수력 댐 강우예측 AI 경진대회 in Dacon
+# 공공데이터 활용 수력 댐 강우예측 AI 경진대회, 한국수력원자력(주) & Dacon
 - **대회 기간**: 2020년 10월 05일 ~ 2020년 11월 13일 18시
 - **참여 일자**: 2020년 11월 01일 (D-11)
 - **대회 링크**: [공공데이터 활용 수력 댐 강우예측 AI 경진대회](https://dacon.io/competitions/official/235646/overview/)
-- **대회 결과**: 
+- **대회 결과**: Private ranking - 30등 / 132명 (상위  22.72%)
 - **결과 예시 사진:**
 
 ![result-examples](images/result-examples.jpg)<br/>
@@ -19,30 +19,30 @@
 ![comparsion](images/comparision.jpg)  
 
 ### Level 1 Model
-Model1
 - UNet from [@milesial](https://github.com/milesial/Pytorch-UNet/blob/master/unet/unet_model.py#L8) 
   with `n_channels=4` and `n_classes=1`
-- Loss function: MSE
+- Loss function: MSE / MAE / SSIM
 - Optimizer: [AdamW](https://arxiv.org/abs/1711.05101)
 - Scheduler: ReduceLROnPlateau
 - Augmentation: Blur, Median Blur, CutOut 
 
-Model2
-- UNet from [@milesial](https://github.com/milesial/Pytorch-UNet/blob/master/unet/unet_model.py#L8) 
-  with `n_channels=4` and `n_classes=1`
-- Loss function: [SSIM](https://arxiv.org/pdf/1511.08861.pdf) from [@Po-Hsun-Su](https://github.com/Po-Hsun-Su/pytorch-ssim/blob/master/pytorch_ssim/__init__.py#L39)
-- Optimizer: [AdamW](https://arxiv.org/abs/1711.05101)
-- Scheduler: ReduceLROnPlateau
-- Augmentation: Blur, Median Blur, CutOut
+### Level 2 Model (Averaging folds ensemble)
+- 데이터를 5개의 폴드로 분할하고 다양한 실험 환경에서 모델을 학습시켜 얻은 결과들을 trial-and-error 방식으로 선택하여 평균  
+    
+| Loss  | Augmentations | Fold | LB     |
+| ---   | ---           | ---  | ---    |
+| MAE   | O             | 0    | 0.5505
+| MSE   | X             | 0    | 0.5516 |
+| MSE   | O             | 1    | 0.5564 |
+| SSIM  | X             | 0    | 0.5595 |
+| SSIM  | O             | 0    | **0.5491** | 
+| SSIM  | O             | 1    | 0.5557 |      
 
-### Level 2 Model (Ensemble)
-- 데이터를 5개 폴드로 랜덤하게 분할한 후, 4개 폴드로 모델을 학습시키고 나머지 1개 폴드로 검증하는 방식을 5번 반복합니다. (모델 2개 x 5 폴드 = 총 10개의 모델) 
-- 10개의 모델의 예측값의 평균을 최종 예측값으로 산출합니다.
 ---
 ## How to explore the codes?
-### 0. `unet`, `pytorch_ssim` 폴더
+### 0. unet, pytorch_ssim 폴더
 - UNet과 SSIM의 구현체입니다. 직접 구현한 것은 아니고 각각 [@milesial](https://github.com/milesial/Pytorch-UNet/blob/master/unet/unet_model.py#L8) 와 
-[@Po-Hsun-Su](https://github.com/Po-Hsun-Su/pytorch-ssim/blob/master/pytorch_ssim/__init__.py#L39) 의 코드를 복 붙한 것입니다.
+[@Po-Hsun-Su](https://github.com/Po-Hsun-Su/pytorch-ssim/blob/master/pytorch_ssim/__init__.py#L39) 의 코드를 복사 및 붙여넣기 하였습니다.
 ### 1. preprocess.py
 - `torch.utils.data.DataSet`에 사용하기 위한 데이터 전처리를 담은 코드입니다. 각 데이터의 `file_name`과 `fold_number`를 열로 갖는 `metadata.csv` 파일을 생성합니다.<br/>
 - 실행 예시 
@@ -62,12 +62,13 @@ python preprocess.py --dir_input ./input --dir_metadata ./input/metadata.csv
 - 위 코드들을 임포트하여 실제 모델을 학습 및 검증하고 예측하는 프로그램을 실행 스크립트입니다. 즉,
     - 여러가지 하이퍼파라미터 입력 받고
     - 메타데이터를 불러와 `torch.utils.data.DataSet`와 `torch.utils.data.DataLoader`를 정의하며
-    - 모델을 학습 및 검증, 그리고 예측하는 과정을 수행합니다.  
+    - 모델을 학습 및 검증, 그리고 예측하는 과정을 수행합니다. 
+    - 마지막으로 다양한 예측 submission 파일을 평균하여 최종 결과물을 산출합니다.
 - 여러가지 하이퍼파라미터를 바꿔가면서 스크립트를 실행하여 효율적인 실험을 할 수 있습니다. 
 - 실행 예시
 ~~~
 python train.py --dir_meta ./input/metadata.csv --batch_size 32 --p_cutmix 0.00 --p_mixup 0.00 --lr 0.005 --n_epochs 30 --verbose True --dir_base ./output/checkpoints
-python predict.py --dir_meta ./input/metadata.csv --batch_size 1 --dir_checkpoint ./output/checkpoints/last-checkpoint.bin
-                  --dir_sub ./output/sub/sample_submission.csv
+python predict.py --dir_meta ./input/metadata.csv --batch_size 1 --dir_checkpoint ./output/checkpoints/last-checkpoint.bin --dir_sub ./output/sub/sample_submission.csv
+python ensemble.py --dir_sample_submission ./output/sub/sample_submission.csv --dir_subs ./output/sub/to_ensemble --dir_result_sub ./output/sub/ensemble.csv
 ~~~ 
  

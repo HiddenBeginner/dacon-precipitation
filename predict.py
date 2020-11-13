@@ -12,11 +12,12 @@ from torch.utils.data import DataLoader
 def get_arguments():
     parser = argparse.ArgumentParser()
     # Dataset arguments
-    parser.add_argument('--dir_meta', type=str, default='./input/metadata(1102).csv', help='The path of metadata')
+    parser.add_argument('--dir_meta', type=str, default='./input/metadata.csv', help='The path of metadata')
     parser.add_argument('--batch_size', type=int, default=1, help='Batch size')
 
     # Fitter arguments
-    parser.add_argument('--dir_checkpoint', type=str, default='./output/checkpoints/best-checkpoint-008.bin',
+    parser.add_argument('--dir_checkpoint', type=str,
+                        default='./output/checkpoints/last-checkpoint.bin',
                         help='The checkpoint path')
     parser.add_argument('--dir_sub', type=str, default='./output/sub/submission.csv',
                         help='The path where trained model will be saved')
