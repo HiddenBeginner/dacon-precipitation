@@ -2,7 +2,7 @@
 - **대회 기간**: 2020년 10월 05일 ~ 2020년 11월 13일 18시
 - **참여 일자**: 2020년 11월 01일 (D-11)
 - **대회 링크**: [공공데이터 활용 수력 댐 강우예측 AI 경진대회](https://dacon.io/competitions/official/235646/overview/)
-- **대회 결과**: Private ranking - 30등 / 132명 (상위  22.72%)
+- **대회 결과**: Private ranking - 29등 / 131명 (상위  22.14%)
 - **결과 예시 사진:**
 
 ![result-examples](images/result-examples.jpg)<br/>
